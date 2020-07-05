@@ -3,6 +3,9 @@ import nico
 import json
 import os
 
+proc `*`(a : int32, b: float32):int32 = (a.float32 * b).int32
+proc `*=`(a : var int32, b: float32)= a = (a.float32 * b).int32
+
 type
   ShapeKind* = enum
     skPoly,
@@ -66,7 +69,7 @@ proc drawShape*(s : Shape, x, y: int32 = 0, rot : float32 = 0)=
 proc drawNvg*(nvg : Nvg,x, y: int32 = 0, rot : float32 = 0)=
   for shape in nvg: shape.drawShape(x,y,rot)
 
-proc loadNvg*(name : string, relative = true) : Nvg=
+proc loadNvg*(name : string, relative = true, scale: float32 = 1) : Nvg=
   let path = if(relative) : assetPath & "/" & name else: name
   
 
@@ -82,7 +85,17 @@ proc loadNvg*(name : string, relative = true) : Nvg=
     file = open(path, fmRead)
     parsed = file.readAll().parseJson()
   file.close()
-  parsed.to(Nvg)
+  result = parsed.to(Nvg)
+  if(scale != 1):
+    for shape in result.mitems:
+      for name, field in shape.fieldPairs:
+        when field is not ShapeKind: 
+          when field is Vec2i: field = vec2i(field.x * scale, field.y * scale)
+          elif(name != "color" and name != "sides" and name != "rot" and name != "rRot"):
+            field *= scale
+
+
+
 
 proc saveNvg*(nvg : Nvg, name : string, relative = true)=
   let

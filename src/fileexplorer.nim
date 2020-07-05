@@ -14,10 +14,10 @@ var
     paths : seq[tuple[kind: PathComponent, path: string]]
 
 proc recalcSpace()=
+    h = clamp(h,64,int32.high)
     toDisplay = h.div(16) - 3
     pageCount = paths.len.div(toDisplay)
     if(page >= pageCount): page = pageCount
-    h = clamp(h,64,int32.high)
 
 proc changeDir(newDir : string)=
     page = 0

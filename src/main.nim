@@ -9,7 +9,12 @@ export shape
 
 type
   States = enum
-    caDrawing,caEditing,caNothing, caLoadPalette, caLoadNvg
+    caDrawing,
+    caEditing,
+    caNothing,
+    caLoadPalette,
+    caLoadNvg,
+    caSaving
 
 var
   selColor = 1
@@ -19,6 +24,7 @@ var
   drawingSteps = 0
   currentShape = 0
   showColour = false
+  origin : Vec2i
 
 const
   toolSprites : Table[ShapeKind,int]= { skPoly : 1,
@@ -153,22 +159,40 @@ proc loadPalette(path : string)=
     loadPaletteFromGPL(path.relativePath(assetPath)).setPalette
     currentState = caNothing
 
+proc saveNvg()=
+  var temp = shapes
+  for x in temp.mitems:
+    for value in x.fields:
+      when value is Vec2i:
+        value -= origin
+  temp.saveNvg("Test.nvg")
+
 proc fileGui()=
   G.beginArea(180 + cameraX, cameraY, 19 * 4, 24, gLeftToRight, true)
   if(G.button("",18,18)):
-    echo "save"
+    if(currentState != caSaving):
+      currentState = caSaving
+    else:
+      saveNvg()
+      currentState = caNothing
   G.area.cursorX -= 19
   G.area.cursorY += 1
   G.sprite(6)
   G.area.cursorY -= 1
+
   if(G.button("",18,18)):
-    currentState = caLoadNvg
+    if(currentState != caLoadNvg):
+      currentState = caLoadNvg
+    else: currentState = caNothing
   G.area.cursorX -= 19
   G.area.cursorY += 1
   G.sprite(7)
   G.area.cursorY -= 1
+
   if(G.button("",18,18)):
-    currentState = caLoadPalette
+    if(currentState != caLoadPalette):
+      currentState = caLoadPalette
+    else: currentState = caNothing
   G.area.cursorX -= 19
   G.area.cursorY += 1
   G.sprite(8)
@@ -180,11 +204,12 @@ proc gameGui()=
   shapeGui()
   colorGui()
   fileGui()
-  if(currentState == caLoadPalette):
+  case currentState:
+  of caLoadPalette:
     let file = fileexplorer("Choose Palette")
     if(not file.isEmptyOrWhitespace):
       loadPalette(file)
-  elif(currentState == caLoadNvg):
+  of caLoadNvg:
     let file = fileexplorer("Choose Nvg")
     if(not file.isEmptyOrWhitespace):
       let temp = loadNvg(file,false)
@@ -192,6 +217,11 @@ proc gameGui()=
         shapes = temp
         currentShape = temp.len
       currentState = caNothing
+  of caSaving:
+    G.beginArea(180 + cameraX, cameraY + 24, 19 * 4, 48, gTopToBottom, true)
+    G.label("Click to place origin, and save button to save.")
+    G.endArea()
+  else: discard
 
 proc gameUpdate(dt: float32) = 
   let overUI = (G.hoverElement > 0)
@@ -289,6 +319,8 @@ proc gameUpdate(dt: float32) =
     of caEditing:
       currentState = caNothing
       currentShape = shapes.len
+    of caSaving:
+      origin = vec2i(mouse()[0],mouse()[1])
     else: discard
 
 proc drawDrawingShape(x : Shape)=
@@ -402,6 +434,8 @@ proc drawShapes()=
 proc gameDraw() =
   cls()
   drawShapes()
+  if(currentState == caSaving):
+    circfill(origin.x,origin.y, 5)
   G.draw(gameGui)
 
 nico.init("myOrg", "myApp")

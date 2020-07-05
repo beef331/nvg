@@ -46,9 +46,15 @@ proc drawShape*(s : Shape, x, y: int32 = 0, rot : float32 = 0)=
         newP2 = s.point2.vec2f.rotate(rot).vec2i + pos
     line(newP1.x, newP1.y, newP2.x, newP2.y)
   of skCircle:
-    circfill(s.pos.x + x,s.pos.y + y,s.radius)
+    let point = rotate(s.pos.vec2f,rot).vec2i + pos
+    circfill(point.x, point.y,s.radius)
   of skQuad:
-    quadfill(s.pos.x + x,s.pos.y + y,s.p2.x + x,s.p2.y + y,s.p3.x + x,s.p3.y + y,s.p4.x + x,s.p4.y + y)
+    let 
+      a = rotate(s.pos.vec2f, rot).vec2i + pos
+      b = rotate(s.p2.vec2f, rot).vec2i + pos
+      c = rotate(s.p3.vec2f, rot).vec2i + pos
+      d = rotate(s.p4.vec2f, rot).vec2i + pos
+    quadfill(a.x, a.y, b.x, b.y, c.x, c.y, d.x, d.y)
   of skPoly:
     let
       point = rotate(vec2f(s.width,0),s.rot + rot)
@@ -94,9 +100,6 @@ proc loadNvg*(name : string, relative = true, scale: float32 = 1) : Nvg=
           when field is Vec2i: field = vec2i(field.x * scale, field.y * scale)
           elif(name != "color" and name != "sides" and name != "rot" and name != "rRot"):
             field *= scale
-
-
-
 
 proc saveNvg*(nvg : Nvg, name : string, relative = true)=
   let

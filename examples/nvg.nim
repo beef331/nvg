@@ -3,7 +3,8 @@ import nico, math
 
 var 
     nvg: Nvg
-    scale:float32 = 0.5 
+    scale:float32 = 0.5
+    rot:float32 = 0
 
 proc init() =
   setCamera(0, 0)
@@ -16,12 +17,13 @@ proc update(dt: Pfloat) =
     if(key(K_EQUALS)):
         scale += dt
         nvg = loadNvg("Test.nvg",true,scale)
+    rot += mousewheel().float32 * dt * 5
 
 
 
 proc draw() =
   cls()
-  nvg.drawNvg(mouse()[0],mouse()[1])
+  nvg.drawNvg(mouse()[0],mouse()[1],rot)
 
 
 nico.init("Nico","Overlap")

@@ -37,32 +37,33 @@ type
   Nvg* = seq[Shape]
 
 proc drawShape*(s : Shape, x, y: int32 = 0, rot : float32 = 0)=
+  var pos = vec2i(x,y)
   setColor(s.color)
   case s.kind:
   of skLine:
     let
-        newP1 = s.pos.vec2f.rotate(rot)
-        newP2 = s.point2.vec2f.rotate(rot)
+        newP1 = s.pos.vec2f.rotate(rot).vec2i + pos
+        newP2 = s.point2.vec2f.rotate(rot).vec2i + pos
     line(newP1.x, newP1.y, newP2.x, newP2.y)
   of skCircle:
-    circfill(s.pos.x,s.pos.y,s.radius)
+    circfill(s.pos.x + x,s.pos.y + y,s.radius)
   of skQuad:
-    quadfill(s.pos.x,s.pos.y,s.p2.x,s.p2.y,s.p3.x,s.p3.y,s.p4.x,s.p4.y)
+    quadfill(s.pos.x + x,s.pos.y + y,s.p2.x + x,s.p2.y + y,s.p3.x + x,s.p3.y + y,s.p4.x + x,s.p4.y + y)
   of skPoly:
     let
       point = rotate(vec2f(s.width,0),s.rot + rot)
       pRot = TAU / s.sides.float32 + rot
     for p in 0..<s.sides:
       let
-        this = rotate(point, pRot * p.float32).vec2i + s.pos
-        next = rotate(point, pRot * (p + 1).float32).vec2i + s.pos
-      trifill(this.x,this.y,next.x,next.y,s.pos.x,s.pos.y)
+        this = rotate(point, pRot * p.float32).vec2i + s.pos + pos
+        next = rotate(point, pRot * (p + 1).float32).vec2i + s.pos + pos
+      trifill(this.x,this.y,next.x,next.y,s.pos.x + x,s.pos.y + y)
   of skRect:
     let
-      a = vec2f(s.rWidth, s.rHeight).rotate(rot).vec2i + s.pos
-      b = vec2f(-s.rWidth, s.rHeight).rotate(rot).vec2i + s.pos
-      c = vec2f(-s.rWidth, -s.rHeight).rotate(rot).vec2i + s.pos
-      d = vec2f(s.rWidth, -s.rHeight).rotate(rot).vec2i + s.pos
+      a = vec2f(s.rWidth, s.rHeight).rotate(rot).vec2i + s.pos + pos
+      b = vec2f(-s.rWidth, s.rHeight).rotate(rot).vec2i + s.pos + pos
+      c = vec2f(-s.rWidth, -s.rHeight).rotate(rot).vec2i + s.pos + pos
+      d = vec2f(s.rWidth, -s.rHeight).rotate(rot).vec2i + s.pos + pos
     quadfill(a.x, a.y, b.x, b.y, c.x, c.y, d.x, d.y)
   else: discard
 

@@ -23,7 +23,7 @@ var
   currentState = caNothing
   drawingSteps = 0
   currentShape = 0
-  showColour = false
+  showColour = true
   origin : Vec2i
 
 const
@@ -121,21 +121,24 @@ proc colorGui()=
 
   if(G.beginWindow("Color", x, y, w, h, showColour)):
     let 
-      fillColour = G.colorSets[gDefault].fill
-      hoverColour = G.colorSets[gDefault].fillHover
+      fillColour = G.colorSets[gDefault].fillOutset
+      insetCol = G.colorSets[gDefault].fillInset
+      hoverColour = G.colorSets[gDefault].hoverOutline
     for i in 0..<getPalette().size:
       if(i.mod(w/perRow - 1) == 0):
         if(i > 0): G.endArea()
         G.beginHorizontal(12)
 
-      G.colorSets[gDefault].fill = i
-      G.colorSets[gDefault].fillHover = i
+      G.colorSets[gDefault].fillOutset = i
+      G.colorSets[gDefault].fillInset = i
+      G.colorSets[gDefault].hoverOutline = i
       if(G.button(" ",10,10)):
         selColor = i
         if(currentState != caNothing): shapes[currentShape].color = i
 
-    G.colorSets[gDefault].fill = fillColour
-    G.colorSets[gDefault].fillHover = hoverColour
+    G.colorSets[gDefault].fillOutset = fillColour
+    G.colorSets[gDefault].fillInset = insetCol
+    G.colorSets[gDefault].hoverOutline = hoverColour
     G.endArea()
     G.endArea()
 
